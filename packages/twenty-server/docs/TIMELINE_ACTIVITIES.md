@@ -132,14 +132,27 @@ window, group key and merge function are constants in code.
    (`timeline-activity.repository.ts:134`), then matches that single row against
    every payload. At most one payload per batch can merge.
 
-3. **The frontend supports linked object types the backend never writes.**
-   `EventRowDynamicComponent` has cases for `message` and `calendarEvent`, but the
-   only producer of `linked-message` / `linked-calendarEvent` rows is the dev
-   seeder. In a real workspace those rows never exist: messages and calendar
-   events reach the timeline through separate read-time resolvers
-   (`core-modules/messaging/timeline-messaging.resolver.ts`,
-   `core-modules/calendar/timeline-calendar-event.resolver.ts`). There are two
-   parallel timeline mechanisms.
+3. **A third producer bypasses the event path entirely.**
+   `messaging/message-participant-manager/listeners/message-participant.listener.ts`
+   and
+   `calendar/calendar-event-participant-manager/listeners/calendar-event-participant.listener.ts`
+   call `TimelineActivityRepository.upsertTimelineActivities` directly on a
+   `*_matched` custom event, writing `message.linked` and `calendarEvent.linked`
+   rows onto the matched person's timeline. They never go through
+   `TimelineActivityService`, so no gate, rule or merge policy applies to them.
+
+   This is worth noting for the model rather than deploring: a `messageParticipant`
+   is a junction between `message` and `person`, so those listeners are a hand
+   rolled version of exactly the emission this proposal describes, and could
+   become `MATERIALIZED message -> message.messageParticipants` once
+   `messageParticipant.person` is declared as the junction target. What keeps them
+   special is that they fire on participant matching rather than on a database
+   event.
+
+   Separately, the `linked-message` / `linked-calendarEvent` name format that
+   `EventRowDynamicComponent` and `filterTimelineActivityByLinkedObjectTypes`
+   handle is only ever produced by the dev seeder. Real rows use the
+   `<object>.linked` form above.
 
 4. **`TimelineConfigurationDTO` is empty.** The page-layout timeline widget already
    has a configuration slot with nothing in it. That is the home for read-time
@@ -584,10 +597,18 @@ recordTimeline(objectNameSingular, recordId, first, after)
 
 ### 5.4 Structured columns on `timelineActivity`
 
-Additive: `timelineActivityRuleId` (nullable, no FK, so workspace data does not
-depend on a metadata delete), `sourceObjectMetadataId`, `action`. They remove the
-string parsing that both the merge logic and the frontend rely on, while `name`
-keeps being written unchanged.
+Additive: `action`, `sourceObjectMetadataId`, and later `timelineActivityRuleId`.
+They remove the string parsing that both the merge logic and the frontend rely on,
+while `name` keeps being written unchanged.
+
+`action` is authoritative where the two disagree. A junction row being created
+stores `name: "linked-note.created"` for backward compatibility and
+`action: "linked"`, which is what the row actually means.
+
+`timelineActivityRuleId` waits for phase 4: rules have no ids until they are
+persisted, so adding the column earlier would only create a permanently null one.
+It is nullable with no FK when it lands, so workspace data never depends on a
+metadata delete.
 
 ## 6. Aggregation
 
@@ -699,9 +720,10 @@ holding the two fan-out emissions. Delete the four hardcoded branches and
 `SYSTEM_OBJECTS_WITH_TIMELINE_ACTIVITIES`. Fix the `take: 1` batch bug. No schema
 change, no API change, phase 0 tests unchanged.
 
-**Phase 3: structured columns.** Add `timelineActivityRuleId`,
-`sourceObjectMetadataId` and `action` to `timelineActivity`, populate going forward,
-keep writing `name`. Fast instance command.
+**Phase 3: structured columns.** Add `action` and `sourceObjectMetadataId` to
+`timelineActivity`, populate going forward, keep writing `name`. A workspace command
+adds the fields to existing workspaces. `timelineActivityRuleId` follows in phase 4,
+when rules have ids.
 
 **Phase 4: rules become metadata.** Add the entity and the pipeline from section 8,
 with the validator rejecting `INHERITED` until phase 6. The two standard rules move

@@ -161,6 +161,8 @@ export class TimelineActivityRepository {
     return timelineActivityTypeORMRepository.insert(
       payloads.map((payload) => ({
         name: payload.name,
+        action: payload.action,
+        sourceObjectMetadataId: payload.sourceObjectMetadataId,
         properties: payload.properties,
         workspaceMemberId: payload.workspaceMemberId,
         [timelineActivityPropertyName]: payload.recordId,

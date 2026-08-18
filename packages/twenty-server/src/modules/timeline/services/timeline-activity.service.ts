@@ -197,6 +197,8 @@ export class TimelineActivityService {
     if (rule.targetShape.kind === 'SELF') {
       return matchingEvents.map((event) => ({
         name: `${rule.objectNameSingular}.${action}`,
+        action: ruleAction,
+        sourceObjectMetadataId: rule.objectMetadataId,
         objectSingularName: rule.objectNameSingular,
         recordId: event.recordId,
         workspaceMemberId: event.workspaceMemberId,
@@ -216,6 +218,8 @@ export class TimelineActivityService {
     return matchingEvents.flatMap((event) =>
       (targetsBySourceRecordId.get(event.recordId) ?? []).map((target) => ({
         name: `linked-${rule.objectNameSingular}.${action}`,
+        action: ruleAction,
+        sourceObjectMetadataId: rule.objectMetadataId,
         objectSingularName: target.targetObjectNameSingular,
         recordId: target.targetRecordId,
         workspaceMemberId: event.workspaceMemberId,
@@ -307,6 +311,8 @@ export class TimelineActivityService {
       .filter(({ sourceRecordId }) => labelsByRecordId.has(sourceRecordId))
       .map(({ event, target, sourceRecordId }) => ({
         name: `linked-${rule.objectNameSingular}.${action}`,
+        action: ruleAction,
+        sourceObjectMetadataId: rule.objectMetadataId,
         objectSingularName: target.targetObjectNameSingular,
         recordId: target.targetRecordId,
         workspaceMemberId: event.workspaceMemberId,
