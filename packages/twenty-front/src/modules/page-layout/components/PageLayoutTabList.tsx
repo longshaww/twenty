@@ -35,6 +35,7 @@ import { PageLayoutTabListVisibleTabs } from '@/page-layout/components/PageLayou
 import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
 import { useOpenPageLayoutTabSettings } from '@/page-layout/hooks/useOpenPageLayoutTabSettings';
 import { PageLayoutComponentInstanceContext } from '@/page-layout/states/contexts/PageLayoutComponentInstanceContext';
+import { lastActiveTabIdPerPageLayoutIdState } from '@/page-layout/states/lastActiveTabIdPerPageLayoutIdState';
 import { pageLayoutTabSettingsOpenTabIdComponentState } from '@/page-layout/states/pageLayoutTabSettingsOpenTabIdComponentState';
 import { type PageLayoutAddTabStrategy } from '@/page-layout/types/PageLayoutAddTabStrategy';
 import { type PageLayoutTab } from '@/page-layout/types/PageLayoutTab';
@@ -46,6 +47,7 @@ import { Dropdown } from '@/ui/layout/dropdown/components/Dropdown';
 import { TabListDropdown } from '@/ui/layout/tab-list/components/TabListDropdown';
 import { type SingleTabProps } from '@/ui/layout/tab-list/types/SingleTabProps';
 import { useAvailableComponentInstanceIdOrThrow } from '@/ui/utilities/state/component-state/hooks/useAvailableComponentInstanceIdOrThrow';
+import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
 import { isDefined } from 'twenty-shared/utils';
 import { themeCssVariables } from 'twenty-ui/theme';
 import {
@@ -170,6 +172,10 @@ export const PageLayoutTabList = ({
     PageLayoutComponentInstanceContext,
   );
 
+  const setLastActiveTabIdPerPageLayoutId = useSetAtomState(
+    lastActiveTabIdPerPageLayoutIdState,
+  );
+
   const dropdownId = `tab-overflow-${componentInstanceId}`;
   const addTabDropdownId = `tab-add-${componentInstanceId}`;
   const { closeDropdown } = useCloseDropdown();
@@ -200,6 +206,12 @@ export const PageLayoutTabList = ({
         );
       }
       setActiveTabId(tabId);
+      // Recorded here rather than wherever the tab changes, so it only ever
+      // holds a tab somebody picked, never one a default landed them on.
+      setLastActiveTabIdPerPageLayoutId((previous) => ({
+        ...previous,
+        [pageLayoutId]: tabId,
+      }));
       onChangeTab?.(tabId);
     },
     [
@@ -208,7 +220,9 @@ export const PageLayoutTabList = ({
       location.search,
       location.state,
       onChangeTab,
+      pageLayoutId,
       setActiveTabId,
+      setLastActiveTabIdPerPageLayoutId,
       workspaceSurface.ownsRouteLocation,
       workspaceSurface.type,
     ],

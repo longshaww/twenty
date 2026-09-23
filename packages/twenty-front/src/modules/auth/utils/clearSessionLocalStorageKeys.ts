@@ -4,6 +4,7 @@ const SESSION_KEYS_TO_CLEAR = [
   // Clear values persisted before this now-unused state was removed.
   'lastVisitedObjectMetadataItemIdState',
   'lastVisitedViewPerObjectMetadataItemState',
+  'lastActiveTabIdPerPageLayoutIdState',
   'ai/agentChatDraftsByThreadIdState',
   'companyEnrichmentState',
   'personEnrichmentState',

@@ -63,6 +63,7 @@ const TabSelectionPreview = () => {
     <>
       <PageLayoutTabListEffect
         isInEditMode={isInEditMode}
+        pageLayoutId="page-layout-story"
         tabs={tabsToRenderInTabList}
         componentInstanceId={TAB_LIST_INSTANCE_ID}
       />

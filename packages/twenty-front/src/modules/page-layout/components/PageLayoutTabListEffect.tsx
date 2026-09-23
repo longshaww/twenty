@@ -1,3 +1,4 @@
+import { lastActiveTabIdPerPageLayoutIdState } from '@/page-layout/states/lastActiveTabIdPerPageLayoutIdState';
 import { type PageLayoutTab } from '@/page-layout/types/PageLayoutTab';
 import { getPageLayoutTabListInitialActiveTabId } from '@/page-layout/utils/getPageLayoutTabListInitialActiveTabId';
 import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
@@ -5,6 +6,7 @@ import { activeTabIdComponentState } from '@/ui/layout/tab-list/states/activeTab
 import { type TabListProps } from '@/ui/layout/tab-list/types/TabListProps';
 import { useIsMobile } from 'twenty-ui/utilities';
 import { useAtomComponentStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomComponentStateValue';
+import { useAtomStateValue } from '@/ui/utilities/state/jotai/hooks/useAtomStateValue';
 import { useStore } from 'jotai';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -16,6 +18,7 @@ type PageLayoutTabListEffectProps = Pick<
 > & {
   tabs: PageLayoutTab[];
   isInEditMode: boolean;
+  pageLayoutId: string;
   defaultTabToFocusOnMobileAndSidePanelId?: string;
 };
 
@@ -24,6 +27,7 @@ export const PageLayoutTabListEffect = ({
   isInEditMode,
   onChangeTab,
   componentInstanceId,
+  pageLayoutId,
   defaultTabToFocusOnMobileAndSidePanelId,
 }: PageLayoutTabListEffectProps) => {
   const activeTabId = useAtomComponentStateValue(
@@ -38,9 +42,14 @@ export const PageLayoutTabListEffect = ({
   const { hash, search, state } = useLocation();
   const navigate = useNavigate();
 
+  const lastActiveTabIdPerPageLayoutId = useAtomStateValue(
+    lastActiveTabIdPerPageLayoutIdState,
+  );
+
   const initialActiveTabId = getPageLayoutTabListInitialActiveTabId({
     activeTabId,
     tabs,
+    lastActiveTabId: lastActiveTabIdPerPageLayoutId?.[pageLayoutId],
     defaultTabToFocusOnMobileAndSidePanelId,
     isMobile,
     isInSidePanel,

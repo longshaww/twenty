@@ -22,6 +22,57 @@ describe('getPageLayoutTabListInitialActiveTabId', () => {
     createMockTab('tab-3'),
   ];
 
+  describe('when a tab was last chosen on this page layout', () => {
+    it('should return the remembered tab ahead of the first one', () => {
+      const result = getPageLayoutTabListInitialActiveTabId({
+        activeTabId: null,
+        tabs: mockTabs,
+        lastActiveTabId: 'tab-3',
+        isMobile: false,
+        isInSidePanel: false,
+      });
+
+      expect(result).toBe('tab-3');
+    });
+
+    it('should lose to an activeTabId, which is what a URL hash writes', () => {
+      const result = getPageLayoutTabListInitialActiveTabId({
+        activeTabId: 'tab-2',
+        tabs: mockTabs,
+        lastActiveTabId: 'tab-3',
+        isMobile: false,
+        isInSidePanel: false,
+      });
+
+      expect(result).toBe('tab-2');
+    });
+
+    it('should win over the mobile and side panel default', () => {
+      const result = getPageLayoutTabListInitialActiveTabId({
+        activeTabId: null,
+        tabs: mockTabs,
+        lastActiveTabId: 'tab-2',
+        defaultTabToFocusOnMobileAndSidePanelId: 'tab-3',
+        isMobile: true,
+        isInSidePanel: true,
+      });
+
+      expect(result).toBe('tab-2');
+    });
+
+    it('should be ignored when the remembered tab no longer exists', () => {
+      const result = getPageLayoutTabListInitialActiveTabId({
+        activeTabId: null,
+        tabs: mockTabs,
+        lastActiveTabId: 'tab-removed',
+        isMobile: false,
+        isInSidePanel: false,
+      });
+
+      expect(result).toBe('tab-1');
+    });
+  });
+
   describe('when activeTabId exists in tabs', () => {
     it('should return activeTabId regardless of context', () => {
       const result = getPageLayoutTabListInitialActiveTabId({

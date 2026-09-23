@@ -4,6 +4,7 @@ import { isDefined } from 'twenty-shared/utils';
 type GetPageLayoutTabListInitialActiveTabIdParams = {
   activeTabId: string | null;
   tabs: PageLayoutTab[];
+  lastActiveTabId?: string;
   defaultTabToFocusOnMobileAndSidePanelId?: string;
   isMobile: boolean;
   isInSidePanel: boolean;
@@ -12,6 +13,7 @@ type GetPageLayoutTabListInitialActiveTabIdParams = {
 export const getPageLayoutTabListInitialActiveTabId = ({
   activeTabId,
   tabs,
+  lastActiveTabId,
   defaultTabToFocusOnMobileAndSidePanelId,
   isMobile,
   isInSidePanel,
@@ -20,6 +22,17 @@ export const getPageLayoutTabListInitialActiveTabId = ({
 
   if (activeTabExists) {
     return activeTabId;
+  }
+
+  // Below a URL hash, which has already written itself into activeTabId by the
+  // time this runs, and above the mobile default, which is a page-wide setting
+  // rather than something this person chose.
+  if (isDefined(lastActiveTabId)) {
+    const lastActiveTabExists = tabs.some((tab) => tab.id === lastActiveTabId);
+
+    if (lastActiveTabExists) {
+      return lastActiveTabId;
+    }
   }
 
   const isOnMobileOrSidePanel = isMobile || isInSidePanel;
