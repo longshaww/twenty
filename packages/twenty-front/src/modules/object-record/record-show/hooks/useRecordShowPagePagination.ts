@@ -11,6 +11,7 @@ import {
 import { useObjectMetadataItem } from '@/object-metadata/hooks/useObjectMetadataItem';
 import { useFindManyRecords } from '@/object-record/hooks/useFindManyRecords';
 import { lastShowPageRecordIdState } from '@/object-record/record-field/ui/states/lastShowPageRecordId';
+import { getRecordShowReturnLocation } from '@/object-record/record-show/utils/getRecordShowReturnLocation';
 import { computeCursorArgFilter } from '@/object-record/graphql/utils/computeCursorArgFilter';
 import { extractOrderByFieldNames } from '@/object-record/graphql/utils/extractOrderByFieldNames';
 import { reverseOrderBy } from '@/object-record/graphql/utils/reverseOrderBy';
@@ -190,10 +191,12 @@ export const useRecordShowPagePagination = (
       { viewId: viewIdQueryParam },
     )}${location.hash}`;
 
-    navigate(
-      destinationPath,
-      ownsSidePanelRoute ? { replace: true } : undefined,
-    );
+    // Carry the history state across prev/next, so a return target set by
+    // whoever opened the first record still applies three records later.
+    navigate(destinationPath, {
+      replace: ownsSidePanelRoute,
+      state: location.state,
+    });
   };
 
   const navigateToPreviousRecord = () => {
@@ -221,6 +224,14 @@ export const useRecordShowPagePagination = (
   };
 
   const navigateToIndexView = () => {
+    const returnLocation = getRecordShowReturnLocation(location.state);
+
+    if (isDefined(returnLocation) && !ownsSidePanelRoute) {
+      navigate(returnLocation);
+      setLastShowPageRecordId(objectRecordId);
+      return;
+    }
+
     const indexPath = getAppPath(
       AppPath.RecordIndexPage,
       { objectNamePlural: objectMetadataItem.namePlural },
