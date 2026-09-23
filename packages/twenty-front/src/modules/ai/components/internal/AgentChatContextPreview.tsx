@@ -1,3 +1,4 @@
+import { useAiChatFileUpload } from '@/ai/hooks/useAiChatFileUpload';
 import { agentChatSelectedFilesState } from '@/ai/states/agentChatSelectedFilesState';
 import { agentChatUploadedFilesState } from '@/ai/states/agentChatUploadedFilesState';
 import { useAtomState } from '@/ui/utilities/state/jotai/hooks/useAtomState';
@@ -27,6 +28,8 @@ export const AgentChatContextPreview = () => {
     agentChatUploadedFilesState,
   );
 
+  const { cancelUpload } = useAiChatFileUpload();
+
   const handleRemoveUploadedFile = (fileIndex: number) => {
     setAgentChatUploadedFiles(
       agentChatUploadedFiles.filter((_, index) => fileIndex !== index),
@@ -48,6 +51,8 @@ export const AgentChatContextPreview = () => {
             file={file}
             key={file.name}
             onRemove={() => {
+              // Removing the chip used to leave the PUT running invisibly.
+              cancelUpload(file.name);
               setAgentChatSelectedFiles(
                 agentChatSelectedFiles.filter((f) => f.name !== file.name),
               );

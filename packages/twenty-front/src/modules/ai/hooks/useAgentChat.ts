@@ -102,6 +102,12 @@ export const useAgentChat = (
     const agentChatSelectedFiles = store.get(agentChatSelectedFilesState.atom);
 
     if (agentChatSelectedFiles.length > 0) {
+      // Silent until now: the button looked live, did nothing, and said nothing.
+      enqueueToast({
+        variant: 'error',
+        children: t`Wait for the attachments to finish uploading.`,
+      });
+
       return;
     }
 

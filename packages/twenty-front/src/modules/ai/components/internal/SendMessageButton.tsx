@@ -1,4 +1,6 @@
 import { AGENT_CHAT_STOP_EVENT_NAME } from '@/ai/constants/AgentChatStopEventName';
+import { useAiChatFileUpload } from '@/ai/hooks/useAiChatFileUpload';
+import { agentChatSelectedFilesState } from '@/ai/states/agentChatSelectedFilesState';
 import { agentChatIsAwaitingFirstChunkComponentFamilyState } from '@/ai/states/agentChatIsAwaitingFirstChunkComponentFamilyState';
 import { agentChatIsLoadingState } from '@/ai/states/agentChatIsLoadingState';
 import { agentChatIsStreamingComponentFamilyState } from '@/ai/states/agentChatIsStreamingComponentFamilyState';
@@ -36,11 +38,26 @@ export const SendMessageButton = ({
     { threadId: currentAiChatThread },
   );
 
+  const agentChatSelectedFiles = useAtomStateValue(agentChatSelectedFilesState);
+  const { cancelAllUploads } = useAiChatFileUpload();
+
+  // An attachment still uploading is the one state where there was nothing to
+  // press: send refuses to run while files are pending, and the stop button did
+  // not appear until the stream had already started.
+  const hasUploadsInFlight = agentChatSelectedFiles.length > 0;
+
   const handleStopClick = () => {
+    if (hasUploadsInFlight) {
+      cancelAllUploads();
+    }
     dispatchBrowserEvent(AGENT_CHAT_STOP_EVENT_NAME);
   };
 
-  if (agentChatIsStreaming || agentChatIsAwaitingFirstChunk) {
+  if (
+    agentChatIsStreaming ||
+    agentChatIsAwaitingFirstChunk ||
+    hasUploadsInFlight
+  ) {
     return (
       <IconButton
         variant="solid"
