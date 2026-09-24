@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { ConnectedAccountProvider } from 'twenty-shared/types';
+import { isDefined } from 'twenty-shared/utils';
 
 import { CalDavCreateEventService } from 'src/modules/calendar/calendar-event-creation-manager/drivers/caldav/services/caldav-create-event.service';
 import { GoogleCalendarCreateEventService } from 'src/modules/calendar/calendar-event-creation-manager/drivers/google-calendar/services/google-calendar-create-event.service';
@@ -27,6 +28,18 @@ export class CreateCalendarEventService {
   async createComposedCalendarEvent(
     data: ComposedCalendarEvent,
   ): Promise<FetchedCalendarEvent> {
+    // Only the Microsoft driver builds a recurrence today. Refusing loudly beats
+    // creating a single event for somebody who asked for a weekly series.
+    if (
+      isDefined(data.input.recurrence) &&
+      data.connectedAccount.provider !== ConnectedAccountProvider.MICROSOFT
+    ) {
+      throw new CalendarEventCreationException(
+        `Recurring events are not supported for provider ${data.connectedAccount.provider}`,
+        CalendarEventCreationExceptionCode.PROVIDER_NOT_SUPPORTED,
+      );
+    }
+
     switch (data.connectedAccount.provider) {
       case ConnectedAccountProvider.GOOGLE:
         return this.googleCalendarCreateEventService.createCalendarEvent(

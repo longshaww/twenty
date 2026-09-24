@@ -14,6 +14,7 @@ import { isCalendarCreationSupportedProvider } from 'src/modules/calendar/calend
 import { isValidTimeZone } from 'src/modules/calendar/calendar-event-creation-manager/utils/is-valid-time-zone.util';
 import { type CalendarEventComposerResult } from 'src/modules/calendar/calendar-event-creation-manager/types/calendar-event-composer-result.type';
 import { type CalendarEventToCreate } from 'src/modules/calendar/calendar-event-creation-manager/types/calendar-event-to-create.type';
+import { type CalendarEventRecurrenceInput } from 'src/modules/calendar/calendar-event-creation-manager/dtos/calendar-event-recurrence.input';
 import { type ComposeCalendarEventParams } from 'src/modules/calendar/calendar-event-creation-manager/types/compose-calendar-event-params.type';
 
 // Timed events need an absolute instant, so the date-time must carry an explicit
@@ -126,6 +127,15 @@ export class CalendarEventComposerService {
       };
     }
 
+    const recurrenceError = this.validateRecurrence(
+      params.recurrence,
+      params.startsAt,
+    );
+
+    if (isDefined(recurrenceError)) {
+      return { error: recurrenceError };
+    }
+
     return {
       title,
       description: params.description,
@@ -137,7 +147,46 @@ export class CalendarEventComposerService {
       attendees: attendeeEmails.map((email) => ({ email })),
       sendInvitations,
       addConferencing: params.addConferencing ?? false,
+      recurrence: params.recurrence,
     };
+  }
+
+  private validateRecurrence(
+    recurrence: CalendarEventRecurrenceInput | undefined,
+    startsAt: string,
+  ): string | undefined {
+    if (!isDefined(recurrence)) {
+      return undefined;
+    }
+
+    if (isDefined(recurrence.interval) && recurrence.interval < 1) {
+      return 'A recurrence interval must be at least 1';
+    }
+
+    if (isDefined(recurrence.occurrenceCount) && isDefined(recurrence.until)) {
+      return 'A recurrence takes either an end date or a number of occurrences, not both';
+    }
+
+    if (
+      isDefined(recurrence.occurrenceCount) &&
+      recurrence.occurrenceCount < 1
+    ) {
+      return 'A recurrence must have at least one occurrence';
+    }
+
+    if (isDefined(recurrence.until)) {
+      const until = new Date(recurrence.until);
+
+      if (Number.isNaN(until.getTime())) {
+        return `Recurrence end date '${recurrence.until}' is not a valid date`;
+      }
+
+      if (until.getTime() < new Date(startsAt).getTime()) {
+        return 'A recurrence cannot end before the event starts';
+      }
+    }
+
+    return undefined;
   }
 
   // All-day boundaries collapse to a date, so they must be validated at day

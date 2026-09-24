@@ -1,3 +1,5 @@
+import { type CalendarEventRecurrenceInput } from 'src/modules/calendar/calendar-event-creation-manager/dtos/calendar-event-recurrence.input';
+
 export type ComposeCalendarEventParams = {
   title: string;
   description?: string;
@@ -9,5 +11,6 @@ export type ComposeCalendarEventParams = {
   attendees?: string;
   sendInvitations?: boolean;
   addConferencing?: boolean;
+  recurrence?: CalendarEventRecurrenceInput;
   connectedAccountId?: string;
 };

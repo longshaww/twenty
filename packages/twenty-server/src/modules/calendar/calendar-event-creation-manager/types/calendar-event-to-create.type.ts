@@ -1,3 +1,4 @@
+import { type CalendarEventRecurrenceInput } from 'src/modules/calendar/calendar-event-creation-manager/dtos/calendar-event-recurrence.input';
 import { type CalendarEventAttendeeToCreate } from 'src/modules/calendar/calendar-event-creation-manager/types/calendar-event-attendee-to-create.type';
 
 export type CalendarEventToCreate = {
@@ -11,4 +12,5 @@ export type CalendarEventToCreate = {
   attendees: CalendarEventAttendeeToCreate[];
   sendInvitations: boolean;
   addConferencing: boolean;
+  recurrence?: CalendarEventRecurrenceInput;
 };

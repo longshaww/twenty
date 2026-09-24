@@ -76,6 +76,7 @@ export class CreateCalendarEventResolver {
             attendees: input.attendees,
             sendInvitations: input.sendInvitations,
             addConferencing: input.addConferencing,
+            recurrence: input.recurrence,
           },
           workspace.id,
         );

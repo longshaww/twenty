@@ -1,3 +1,4 @@
+import { CalendarEventRecurrenceFrequency } from 'src/modules/calendar/calendar-event-creation-manager/dtos/calendar-event-recurrence.input';
 import { toMicrosoftEventInput } from 'src/modules/calendar/calendar-event-creation-manager/drivers/utils/to-microsoft-event-input.util';
 import { type CalendarEventToCreate } from 'src/modules/calendar/calendar-event-creation-manager/types/calendar-event-to-create.type';
 
@@ -81,5 +82,91 @@ describe('toMicrosoftEventInput', () => {
 
     expect(event.isOnlineMeeting).toBe(true);
     expect(event.onlineMeetingProvider).toBe('teamsForBusiness');
+  });
+
+  describe('recurrence', () => {
+    it('sets no recurrence when none was asked for', () => {
+      expect(toMicrosoftEventInput(baseInput).recurrence).toBeUndefined();
+    });
+
+    it('names the weekday, because Graph does not infer it from the start date', () => {
+      // 2026-07-01 14:00Z is 10:00 on Wednesday 1 July in America/New_York.
+      const event = toMicrosoftEventInput({
+        ...baseInput,
+        recurrence: { frequency: CalendarEventRecurrenceFrequency.WEEKLY },
+      });
+
+      expect(event.recurrence).toEqual({
+        pattern: { type: 'weekly', interval: 1, daysOfWeek: ['wednesday'] },
+        range: {
+          type: 'noEnd',
+          startDate: '2026-07-01',
+          recurrenceTimeZone: 'America/New_York',
+        },
+      });
+    });
+
+    it('takes the range start date from the event time zone, not the UTC instant', () => {
+      // 2026-07-02T02:00Z is still 22:00 on 1 July in New York, and Graph
+      // rejects a range whose startDate is not the event's own start date.
+      const event = toMicrosoftEventInput({
+        ...baseInput,
+        startsAt: '2026-07-02T02:00:00Z',
+        endsAt: '2026-07-02T03:00:00Z',
+        recurrence: { frequency: CalendarEventRecurrenceFrequency.WEEKLY },
+      });
+
+      expect(event.recurrence?.range?.startDate).toBe('2026-07-01');
+      expect(event.recurrence?.pattern?.daysOfWeek).toEqual(['wednesday']);
+    });
+
+    it('ends the series on the given date', () => {
+      const event = toMicrosoftEventInput({
+        ...baseInput,
+        recurrence: {
+          frequency: CalendarEventRecurrenceFrequency.WEEKLY,
+          until: '2026-09-30',
+        },
+      });
+
+      expect(event.recurrence?.range).toEqual({
+        type: 'endDate',
+        startDate: '2026-07-01',
+        endDate: '2026-09-30',
+        recurrenceTimeZone: 'America/New_York',
+      });
+    });
+
+    it('supports a fixed number of occurrences and a wider interval', () => {
+      const event = toMicrosoftEventInput({
+        ...baseInput,
+        recurrence: {
+          frequency: CalendarEventRecurrenceFrequency.WEEKLY,
+          interval: 2,
+          occurrenceCount: 6,
+        },
+      });
+
+      expect(event.recurrence?.pattern?.interval).toBe(2);
+      expect(event.recurrence?.range).toEqual({
+        type: 'numbered',
+        startDate: '2026-07-01',
+        numberOfOccurrences: 6,
+        recurrenceTimeZone: 'America/New_York',
+      });
+    });
+
+    it('pins a monthly series to the day of the month it starts on', () => {
+      const event = toMicrosoftEventInput({
+        ...baseInput,
+        recurrence: { frequency: CalendarEventRecurrenceFrequency.MONTHLY },
+      });
+
+      expect(event.recurrence?.pattern).toEqual({
+        type: 'absoluteMonthly',
+        interval: 1,
+        dayOfMonth: 1,
+      });
+    });
   });
 });
