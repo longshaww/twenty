@@ -4,13 +4,21 @@ import { type FieldMetadataItem } from '@/object-metadata/types/FieldMetadataIte
 
 import { isSystemSearchVectorField } from '@/object-record/utils/isSystemSearchVectorField';
 import { type CompositeFieldSubFieldName } from '@/settings/data-model/types/CompositeFieldSubFieldName';
+import { t } from '@lingui/core/macro';
 import {
   convertViewFilterValueToString,
   getFilterTypeFromFieldType,
   isDefined,
+  parseJson,
 } from 'twenty-shared/utils';
 import { type ViewFilter as GqlViewFilter } from '~/generated-metadata/graphql';
 import { type ViewFilter } from '@/views/types/ViewFilter';
+
+// A view scoped to the record it sits on stores no record name to show, only
+// this flag, so without a display value its chip printed the raw JSON.
+const isCurrentRecordFilterValue = (stringValue: string) =>
+  parseJson<{ isCurrentRecordSelected?: boolean }>(stringValue)
+    ?.isCurrentRecordSelected === true;
 
 export const mapViewFiltersToFilters = (
   viewFilters: ViewFilter[] | GqlViewFilter[],
@@ -70,7 +78,9 @@ export const mapViewFiltersToFilters = (
         displayValue:
           'displayValue' in viewFilter && isDefined(viewFilter.displayValue)
             ? viewFilter.displayValue
-            : stringValue,
+            : isCurrentRecordFilterValue(stringValue)
+              ? t`This record`
+              : stringValue,
         operand,
         recordFilterGroupId: viewFilter.viewFilterGroupId ?? undefined,
         positionInRecordFilterGroup: viewFilter.positionInViewFilterGroup,

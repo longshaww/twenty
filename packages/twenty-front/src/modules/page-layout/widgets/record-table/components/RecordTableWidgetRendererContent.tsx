@@ -9,6 +9,7 @@ import {
   type RecordTableWidgetJunctionCreateThrough,
   type RecordTableWidgetNestedRelationCreateThrough,
 } from '@/object-record/record-table-widget/contexts/RecordTableWidgetContext';
+import { RecordTableWidgetViewBar } from '@/page-layout/widgets/record-table/components/RecordTableWidgetViewBar';
 import { useIsPageLayoutInEditMode } from '@/page-layout/hooks/useIsPageLayoutInEditMode';
 import { recordTableWidgetViewDraftByWidgetIdComponentFamilySelector } from '@/page-layout/states/selectors/recordTableWidgetViewDraftByWidgetIdComponentFamilySelector';
 import {
@@ -101,6 +102,11 @@ export const RecordTableWidgetRendererContent = ({
       junctionCreateThrough={junctionCreateThrough}
       contextStoreViewType={getContextStoreViewType(widgetViewLayout)}
     >
+      {/* Hidden while the layout is being edited: the bar acts on the view's
+          own filters, and the widget is showing a draft of the view then. */}
+      {!isPageLayoutInEditMode && (
+        <RecordTableWidgetViewBar viewType={widgetViewLayout} />
+      )}
       {renderWidgetForLayout[widgetViewLayout]()}
     </RecordTableWidgetProvider>
   );

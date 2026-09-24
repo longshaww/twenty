@@ -51,6 +51,23 @@ describe('mapViewFiltersToFilters', () => {
       mapViewFiltersToFilters(viewFilters, [baseFieldMetadataItem]),
     ).toEqual(expectedFilters);
   });
+
+  it('should label a filter on the current record instead of printing its JSON', () => {
+    const viewFilters = [
+      {
+        id: 'id',
+        fieldMetadataId: '05731f68-6e7a-4903-8374-c0b6a9063482',
+        value: { selectedRecordIds: [], isCurrentRecordSelected: true },
+        operand: ViewFilterOperand.IS,
+      },
+    ] as unknown as ViewFilter[];
+
+    const [filter] = mapViewFiltersToFilters(viewFilters, [
+      baseFieldMetadataItem,
+    ]);
+
+    expect(filter.displayValue).toBe('This record');
+  });
 });
 
 describe('mapViewFieldsToColumnDefinitions', () => {

@@ -33,6 +33,14 @@ jest.mock(
   () => ({ RecordTableWidget: () => <div>record table widget</div> }),
 );
 jest.mock(
+  '@/page-layout/widgets/record-table/components/RecordTableWidgetViewBar',
+  () => ({
+    RecordTableWidgetViewBar: ({ viewType }: { viewType: string }) => (
+      <div>widget view bar for {viewType}</div>
+    ),
+  }),
+);
+jest.mock(
   '@/object-record/record-board-widget/components/RecordBoardWidget',
   () => ({ RecordBoardWidget: () => <div>record board widget</div> }),
 );
@@ -130,5 +138,26 @@ describe('RecordTableWidgetRendererContent', () => {
     renderWidgetForViewType(undefined);
 
     expect(screen.getByText('record table widget')).toBeVisible();
+  });
+
+  // Filter, Sort and Options belong to the record index page, which mounts
+  // RecordIndexViewBar as its secondaryBar. Without this the widget draws a
+  // board nobody can filter.
+  it('should render the view bar, told which layout it is over', () => {
+    renderWidgetForViewType(ViewType.KANBAN_WIDGET);
+
+    expect(
+      screen.getByText(`widget view bar for ${ViewType.KANBAN}`),
+    ).toBeVisible();
+  });
+
+  // In edit mode the widget shows a DRAFT of the view, so a bar acting on the
+  // view's own filters would be editing something else than what is on screen.
+  it('should hide the view bar while the page layout is being edited', () => {
+    mockIsPageLayoutInEditMode.mockReturnValue(true);
+    renderWidgetForViewType(ViewType.KANBAN_WIDGET);
+
+    expect(screen.queryByText(/widget view bar/)).not.toBeInTheDocument();
+    expect(screen.getByText('record board widget')).toBeVisible();
   });
 });
