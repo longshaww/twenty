@@ -53,7 +53,8 @@ import { SyncableEntity } from 'src/engine/workspace-manager/types/syncable-enti
   OR ("type" = 'VIEW' AND "viewId" IS NOT NULL)
   OR ("type" = 'RECORD' AND "targetRecordId" IS NOT NULL AND "targetObjectMetadataId" IS NOT NULL)
   OR ("type" = 'LINK' AND "link" IS NOT NULL)
-  OR ("type" = 'PAGE_LAYOUT' AND "pageLayoutId" IS NOT NULL)`,
+  OR ("type" = 'PAGE_LAYOUT' AND "pageLayoutId" IS NOT NULL)
+  OR ("type" = 'SECTION' AND "name" IS NOT NULL AND "folderId" IS NULL)`,
 )
 export class NavigationMenuItemEntity
   extends SyncableEntity

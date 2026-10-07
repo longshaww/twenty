@@ -14,6 +14,7 @@ import { canNavigationMenuItemBeDroppedIn } from '@/navigation-menu-item/common/
 import { computeDndReorderPosition } from '@/navigation-menu-item/common/utils/computeDndReorderPosition';
 import { extractFolderIdFromDroppableId } from '@/navigation-menu-item/common/utils/extractFolderIdFromDroppableId';
 import { isNavigationMenuItemFolder } from '@/navigation-menu-item/common/utils/isNavigationMenuItemFolder';
+import { isNavigationMenuItemSection } from '@/navigation-menu-item/common/utils/isNavigationMenuItemSection';
 import { useNavigationMenuItemsData } from '@/navigation-menu-item/display/hooks/useNavigationMenuItemsData';
 import { useSortedNavigationMenuItems } from '@/navigation-menu-item/display/hooks/useSortedNavigationMenuItems';
 import { useSetAtomState } from '@/ui/utilities/state/jotai/hooks/useSetAtomState';
@@ -145,9 +146,9 @@ export const useHandleNavigationMenuItemDragAndDrop = (
     );
 
     if (
-      isDraftMode &&
-      isNavigationMenuItemFolder(draggedItem) &&
-      isDefined(destinationFolderId)
+      isDefined(destinationFolderId) &&
+      (isNavigationMenuItemSection(draggedItem) ||
+        (isDraftMode && isNavigationMenuItemFolder(draggedItem)))
     ) {
       return;
     }

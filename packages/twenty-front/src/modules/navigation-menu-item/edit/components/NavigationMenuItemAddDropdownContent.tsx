@@ -88,7 +88,10 @@ export const NavigationMenuItemAddDropdownContent = ({
     });
     onClose();
     setSelectedNavigationMenuItemIdInEditMode(itemId);
-    if (input.type === NavigationMenuItemType.FOLDER) {
+    if (
+      input.type === NavigationMenuItemType.FOLDER ||
+      input.type === NavigationMenuItemType.SECTION
+    ) {
       setNavigationMenuItemIdToRename(itemId);
     }
   };
@@ -99,6 +102,7 @@ export const NavigationMenuItemAddDropdownContent = ({
     recordSearchLoading,
     isSearchDebouncing,
   } = useNavigationMenuItemAddOptions({
+    section,
     step,
     search,
     objectId,

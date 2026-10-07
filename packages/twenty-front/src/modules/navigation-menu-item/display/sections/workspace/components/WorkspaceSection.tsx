@@ -76,7 +76,8 @@ export const WorkspaceSection = () => {
     setSelectedNavigationMenuItemIdInEditMode(item.id);
     if (
       item.type === NavigationMenuItemType.FOLDER ||
-      item.type === NavigationMenuItemType.LINK
+      item.type === NavigationMenuItemType.LINK ||
+      item.type === NavigationMenuItemType.SECTION
     ) {
       return;
     }

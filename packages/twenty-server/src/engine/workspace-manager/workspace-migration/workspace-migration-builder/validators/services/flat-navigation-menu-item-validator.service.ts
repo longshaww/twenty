@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { msg, t } from '@lingui/core/macro';
 import { ALL_METADATA_NAME } from 'twenty-shared/metadata';
+import { NavigationMenuItemType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
 
 import { findFlatEntityByUniversalIdentifier } from 'src/engine/metadata-modules/flat-entity/utils/find-flat-entity-by-universal-identifier.util';
@@ -69,6 +70,24 @@ export class FlatNavigationMenuItemValidatorService {
           },
         ];
     }
+  }
+
+  private getSectionParentValidationErrors(
+    parentNavigationMenuItem:
+      | MetadataUniversalFlatEntity<'navigationMenuItem'>
+      | undefined,
+  ): FlatEntityValidationError<NavigationMenuItemExceptionCode>[] {
+    if (parentNavigationMenuItem?.type !== NavigationMenuItemType.SECTION) {
+      return [];
+    }
+
+    return [
+      {
+        code: NavigationMenuItemExceptionCode.INVALID_NAVIGATION_MENU_ITEM_INPUT,
+        message: t`A navigation menu item cannot be placed inside a section`,
+        userFriendlyMessage: msg`An item cannot be placed inside a section`,
+      },
+    ];
   }
 
   // Entering the flat maps resolves these references, so an unresolvable one
@@ -200,6 +219,12 @@ export class FlatNavigationMenuItemValidatorService {
           userFriendlyMessage: msg`Parent navigation menu item not found`,
         });
       }
+
+      validationResult.errors.push(
+        ...this.getSectionParentValidationErrors(
+          referencedParentInOptimistic ?? referencedParentInRemaining,
+        ),
+      );
     }
 
     return validationResult;
@@ -329,6 +354,12 @@ export class FlatNavigationMenuItemValidatorService {
         userFriendlyMessage: msg`Parent navigation menu item not found`,
       });
     }
+
+    validationResult.errors.push(
+      ...this.getSectionParentValidationErrors(
+        referencedParentNavigationMenuItem,
+      ),
+    );
 
     return validationResult;
   }

@@ -75,7 +75,9 @@ export const NavigationMenuItemActions = ({
       id: 'folder',
       label: t`Move to folder`,
       Icon: IconFolderSymlink,
-      isDisabled: item.type === NavigationMenuItemType.FOLDER,
+      isDisabled:
+        item.type === NavigationMenuItemType.FOLDER ||
+        item.type === NavigationMenuItemType.SECTION,
       hasSubMenu: true,
       onClick: () => setPage('folders'),
     },

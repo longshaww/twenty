@@ -78,7 +78,8 @@ export const NavigationMenuItemEditable = ({
   const canOrganize = isLayoutCustomizationModeEnabled && isWorkspace;
   const canEdit =
     item.type === NavigationMenuItemType.LINK ||
-    item.type === NavigationMenuItemType.FOLDER;
+    item.type === NavigationMenuItemType.FOLDER ||
+    item.type === NavigationMenuItemType.SECTION;
   const openEditMode = useCallback(() => setMode('edit'), []);
   const open = (nextMode: 'actions' | 'edit') => {
     setMode(nextMode);
@@ -90,7 +91,8 @@ export const NavigationMenuItemEditable = ({
   const canPickObjectColor =
     canOrganize && item.type === NavigationMenuItemType.OBJECT;
   const isSelectedFolder =
-    item.type === NavigationMenuItemType.FOLDER &&
+    (item.type === NavigationMenuItemType.FOLDER ||
+      item.type === NavigationMenuItemType.SECTION) &&
     selectedNavigationMenuItemIdInEditMode === item.id;
   const canEditInline = canEdit && (canOrganize || isSelectedFolder);
 

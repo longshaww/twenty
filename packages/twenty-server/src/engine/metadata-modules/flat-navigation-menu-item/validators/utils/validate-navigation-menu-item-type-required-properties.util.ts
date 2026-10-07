@@ -48,6 +48,7 @@ export const validateNavigationMenuItemTypeRequiredProperties = ({
     targetObjectMetadataUniversalIdentifier,
     viewUniversalIdentifier,
     pageLayoutUniversalIdentifier,
+    folderUniversalIdentifier,
   } = flatNavigationMenuItem;
 
   if (!isDefined(type)) {
@@ -114,6 +115,26 @@ export const validateNavigationMenuItemTypeRequiredProperties = ({
         message: t`A valid pageLayoutUniversalIdentifier is required for PAGE_LAYOUT type`,
         userFriendlyMessage: msg`A valid pageLayoutUniversalIdentifier is required for PAGE_LAYOUT type`,
       });
+    }
+    case NavigationMenuItemType.SECTION: {
+      return [
+        ...(isDefined(name) && name.trim() !== ''
+          ? []
+          : [
+              buildInvalidInputError(
+                t`A name is required for SECTION type`,
+                msg`A name is required for SECTION type`,
+              ),
+            ]),
+        ...(isDefined(folderUniversalIdentifier)
+          ? [
+              buildInvalidInputError(
+                t`A SECTION cannot be placed inside a folder`,
+                msg`A section cannot be placed inside a folder`,
+              ),
+            ]
+          : []),
+      ];
     }
     default: {
       // oxlint-disable-next-line unused-imports/no-unused-vars

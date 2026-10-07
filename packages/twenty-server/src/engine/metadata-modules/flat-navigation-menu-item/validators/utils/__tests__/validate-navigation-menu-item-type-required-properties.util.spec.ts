@@ -75,6 +75,10 @@ describe('validateNavigationMenuItemTypeRequiredProperties', () => {
         'A valid pageLayoutUniversalIdentifier is required for PAGE_LAYOUT type',
       ],
     },
+    {
+      type: NavigationMenuItemType.SECTION,
+      expectedMessages: ['A name is required for SECTION type'],
+    },
   ])(
     'should report every missing property for $type type',
     ({ type, expectedMessages }) => {
@@ -113,6 +117,10 @@ describe('validateNavigationMenuItemTypeRequiredProperties', () => {
     {
       type: NavigationMenuItemType.PAGE_LAYOUT,
       overrides: { pageLayoutUniversalIdentifier: VALID_UUID },
+    },
+    {
+      type: NavigationMenuItemType.SECTION,
+      overrides: { name: 'Department' },
     },
   ])(
     'should not report any error when $type type properties are valid',
@@ -153,6 +161,20 @@ describe('validateNavigationMenuItemTypeRequiredProperties', () => {
 
     expect(errors.map(({ message }) => message)).toEqual([
       'A name is required for FOLDER type',
+    ]);
+  });
+
+  it('should report an error when a section is placed inside a folder', () => {
+    const errors = validateNavigationMenuItemTypeRequiredProperties({
+      flatNavigationMenuItem: buildFlatNavigationMenuItem({
+        type: NavigationMenuItemType.SECTION,
+        name: 'Department',
+        folderUniversalIdentifier: OTHER_VALID_UUID,
+      }),
+    });
+
+    expect(errors.map(({ message }) => message)).toEqual([
+      'A SECTION cannot be placed inside a folder',
     ]);
   });
 

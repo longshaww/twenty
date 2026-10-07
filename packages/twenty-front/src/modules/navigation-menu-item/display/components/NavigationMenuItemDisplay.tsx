@@ -4,6 +4,7 @@ import { NavigationMenuItemFolder } from '@/navigation-menu-item/display/folder/
 import { NavigationMenuItemLinkDisplay } from '@/navigation-menu-item/display/link/components/NavigationMenuItemLinkDisplay';
 import { NavigationMenuItemObjectDisplay } from '@/navigation-menu-item/display/object/components/NavigationMenuItemObjectDisplay';
 import { NavigationMenuItemPageLayoutDisplay } from '@/navigation-menu-item/display/page-layout/components/NavigationMenuItemPageLayoutDisplay';
+import { NavigationMenuItemSectionHeader } from '@/navigation-menu-item/display/section/components/NavigationMenuItemSectionHeader';
 import type { NavigationMenuItemSectionContentProps } from '@/navigation-menu-item/display/sections/types/NavigationMenuItemSectionContentProps';
 
 type NavigationMenuItemDisplayProps = NavigationMenuItemSectionContentProps;
@@ -34,6 +35,15 @@ export const NavigationMenuItemDisplay = ({
           onNavigationMenuItemClick={onNavigationMenuItemClick}
           readOnly={readOnly}
           orphanIndex={orphanIndex}
+        />
+      );
+    case NavigationMenuItemType.SECTION:
+      return (
+        <NavigationMenuItemSectionHeader
+          item={item}
+          editModeProps={editModeProps}
+          isDragging={isDragging}
+          rightOptions={rightOptions}
         />
       );
     case NavigationMenuItemType.LINK:

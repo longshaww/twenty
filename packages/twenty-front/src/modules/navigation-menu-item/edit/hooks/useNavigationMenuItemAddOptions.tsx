@@ -6,6 +6,7 @@ import { TintedIconTile } from 'twenty-ui/components';
 import {
   IconBox,
   IconFolder,
+  IconLayoutList,
   IconLink,
   IconPerspective,
   IconTable,
@@ -19,6 +20,8 @@ import {
 
 import { DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER } from '@/navigation-menu-item/common/constants/NavigationMenuItemDefaultColorFolder';
 import { DEFAULT_NAVIGATION_MENU_ITEM_COLOR_LINK } from '@/navigation-menu-item/common/constants/NavigationMenuItemDefaultColorLink';
+import { SECTION_ICON_DEFAULT } from '@/navigation-menu-item/common/constants/SectionIconDefault';
+import { type NavigationMenuItemSection } from '@/navigation-menu-item/common/types/NavigationMenuItemSection';
 import { navigationMenuItemsSelector } from '@/navigation-menu-item/common/states/navigationMenuItemsSelector';
 import { NavigationMenuItemIcon } from '@/navigation-menu-item/display/components/NavigationMenuItemIcon';
 import { type NavigationMenuItemOption } from '@/navigation-menu-item/edit/components/NavigationMenuItemSelectableItem';
@@ -45,6 +48,7 @@ export type NavigationMenuItemAddStep =
   | 'page';
 
 type UseNavigationMenuItemAddOptionsParams = {
+  section: NavigationMenuItemSection;
   step: NavigationMenuItemAddStep;
   search: string;
   objectId: string | null;
@@ -57,6 +61,7 @@ type UseNavigationMenuItemAddOptionsParams = {
 };
 
 export const useNavigationMenuItemAddOptions = ({
+  section,
   step,
   search,
   objectId,
@@ -161,6 +166,26 @@ export const useNavigationMenuItemAddOptions = ({
           },
           isDisabled: isDefined(folderId),
         },
+        ...(section === 'workspace'
+          ? [
+              {
+                id: 'section',
+                label: t`Section`,
+                contextualText: isDefined(folderId)
+                  ? t`Cannot add sections into folders`
+                  : undefined,
+                Icon: IconLayoutList,
+                onClick: () => {
+                  addItem({
+                    type: NavigationMenuItemType.SECTION,
+                    name: t`New section`,
+                    icon: SECTION_ICON_DEFAULT,
+                  });
+                },
+                isDisabled: isDefined(folderId),
+              },
+            ]
+          : []),
         {
           id: 'link',
           label: t`Link`,

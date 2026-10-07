@@ -5,6 +5,8 @@ import type { NavigationMenuItem } from '~/generated-metadata/graphql';
 import { NavigationMenuItemType } from 'twenty-shared/types';
 import type { NavigationMenuItemSectionListDndKitProps } from '@/navigation-menu-item/display/sections/types/NavigationMenuItemSectionListDndKitProps';
 import { NavigationMenuItemDisplay } from '@/navigation-menu-item/display/components/NavigationMenuItemDisplay';
+import { NavigationMenuItemSectionGroupCollapsible } from '@/navigation-menu-item/display/section/components/NavigationMenuItemSectionGroupCollapsible';
+import { groupNavigationMenuItemsBySection } from '@/navigation-menu-item/display/section/utils/groupNavigationMenuItemsBySection';
 
 const StyledList = styled.div`
   display: flex;
@@ -32,20 +34,35 @@ export const WorkspaceSectionListReadOnly = ({
     (item) => item.type === NavigationMenuItemType.FOLDER,
   ).length;
 
+  const renderItem = (item: NavigationMenuItem) => (
+    <NavigationMenuItemDisplay
+      key={item.id}
+      item={item}
+      editModeProps={READ_ONLY_EDIT_MODE_PROPS}
+      isDragging={false}
+      folderChildrenById={folderChildrenById}
+      folderCount={folderCount}
+      onActiveObjectMetadataItemClick={onActiveObjectMetadataItemClick}
+      readOnly
+    />
+  );
+
   return (
     <StyledList>
-      {filteredItems.map((item: NavigationMenuItem) => (
-        <NavigationMenuItemDisplay
-          key={item.id}
-          item={item}
-          editModeProps={READ_ONLY_EDIT_MODE_PROPS}
-          isDragging={false}
-          folderChildrenById={folderChildrenById}
-          folderCount={folderCount}
-          onActiveObjectMetadataItemClick={onActiveObjectMetadataItemClick}
-          readOnly
-        />
-      ))}
+      {groupNavigationMenuItemsBySection(filteredItems).map(
+        ({ section, items }) =>
+          section === null ? (
+            items.map(renderItem)
+          ) : (
+            <NavigationMenuItemSectionGroupCollapsible
+              key={section.id}
+              sectionId={section.id}
+              header={renderItem(section)}
+            >
+              {items.map(renderItem)}
+            </NavigationMenuItemSectionGroupCollapsible>
+          ),
+      )}
     </StyledList>
   );
 };

@@ -6,6 +6,7 @@ import {
 
 import { isNavigationMenuItemFolder } from '@/navigation-menu-item/common/utils/isNavigationMenuItemFolder';
 import { isNavigationMenuItemLink } from '@/navigation-menu-item/common/utils/isNavigationMenuItemLink';
+import { isNavigationMenuItemSection } from '@/navigation-menu-item/common/utils/isNavigationMenuItemSection';
 
 export const buildUpdateInputsFromDraft = ({
   draft,
@@ -35,13 +36,15 @@ export const buildUpdateInputsFromDraft = ({
       (original.folderId ?? null) !== (draftItem.folderId ?? null);
     const nameChanged =
       (isNavigationMenuItemFolder(draftItem) ||
+        isNavigationMenuItemSection(draftItem) ||
         isNavigationMenuItemLink(draftItem)) &&
       (original.name ?? null) !== (draftItem.name ?? null);
     const linkChanged =
       isNavigationMenuItemLink(draftItem) &&
       (original.link ?? null) !== (draftItem.link ?? null);
     const iconChanged =
-      isNavigationMenuItemFolder(draftItem) &&
+      (isNavigationMenuItemFolder(draftItem) ||
+        isNavigationMenuItemSection(draftItem)) &&
       (original.icon ?? null) !== (draftItem.icon ?? null);
     const colorChanged =
       isNavigationMenuItemFolder(draftItem) &&
@@ -68,17 +71,14 @@ export const buildUpdateInputsFromDraft = ({
         ? resolveFolderId(draftItem.folderId)
         : null;
     }
-    if (nameChanged && isNavigationMenuItemFolder(draftItem)) {
-      updatePayload.name = draftItem.name;
-    }
-    if (nameChanged && isNavigationMenuItemLink(draftItem)) {
+    if (nameChanged) {
       updatePayload.name = draftItem.name;
     }
     if (linkChanged && isNavigationMenuItemLink(draftItem)) {
       const linkUrl = (draftItem.link ?? '').trim();
       updatePayload.link = linkUrl ? ensureAbsoluteUrl(linkUrl) : null;
     }
-    if (iconChanged && isNavigationMenuItemFolder(draftItem)) {
+    if (iconChanged) {
       updatePayload.icon = draftItem.icon ?? null;
     }
     if (colorChanged) {

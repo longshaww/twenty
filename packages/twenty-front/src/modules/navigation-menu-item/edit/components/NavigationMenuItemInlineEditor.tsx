@@ -8,7 +8,10 @@ import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { NavigationMenuItemType } from 'twenty-shared/types';
 import { isDefined } from 'twenty-shared/utils';
-import { themeCssVariables } from 'twenty-ui/theme';
+import {
+  DEFAULT_THEME_COLOR_FALLBACK,
+  themeCssVariables,
+} from 'twenty-ui/theme';
 import { parseThemeColor } from 'twenty-ui/utilities';
 import { type NavigationMenuItem } from '~/generated-metadata/graphql';
 import { TextInput } from '@/ui/field/input/components/TextInput';
@@ -17,6 +20,7 @@ import { NavigationMenuItemIcon } from '@/navigation-menu-item/display/component
 import { useNavigationMenuItemEditController } from '@/navigation-menu-item/edit/hooks/useNavigationMenuItemEditController';
 import { DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER } from '@/navigation-menu-item/common/constants/NavigationMenuItemDefaultColorFolder';
 import { FOLDER_ICON_DEFAULT } from '@/navigation-menu-item/common/constants/FolderIconDefault';
+import { SECTION_ICON_DEFAULT } from '@/navigation-menu-item/common/constants/SectionIconDefault';
 import { NavigationDrawerItemEditingContext } from '@/ui/navigation/navigation-drawer/contexts/NavigationDrawerItemEditingContext';
 import { selectedNavigationMenuItemIdInEditModeState } from '@/navigation-menu-item/common/states/selectedNavigationMenuItemIdInEditModeState';
 import { useAtomState } from '@/ui/utilities/state/jotai/hooks/useAtomState';
@@ -105,6 +109,9 @@ export const NavigationMenuItemInlineEditor = ({
     );
   };
   const isFolder = item.type === NavigationMenuItemType.FOLDER;
+  const isSection = item.type === NavigationMenuItemType.SECTION;
+  const isNamed = isFolder || isSection;
+  const defaultIconKey = isSection ? SECTION_ICON_DEFAULT : FOLDER_ICON_DEFAULT;
   const select = () => setSelectedNavigationMenuItemIdInEditMode(item.id);
   const finishRename = (value: string, clearSelection = true) => {
     void updateItem(item.id, { name: value.trim() || initialName });
@@ -113,10 +120,21 @@ export const NavigationMenuItemInlineEditor = ({
   const iconButton = (
     <StyledButton
       type="button"
-      aria-label={isFolder ? t`Choose icon and color` : t`Edit link`}
-      onClick={isFolder ? undefined : onEditLink}
+      aria-label={
+        isFolder
+          ? t`Choose icon and color`
+          : isSection
+            ? t`Choose icon`
+            : t`Edit link`
+      }
+      onClick={isNamed ? undefined : onEditLink}
     >
-      {isFolder ? (
+      {isSection ? (
+        <ColoredIcon
+          Icon={getIcon(item.icon ?? SECTION_ICON_DEFAULT)}
+          color={DEFAULT_THEME_COLOR_FALLBACK}
+        />
+      ) : isFolder ? (
         <ColoredIcon
           Icon={getIcon(item.icon ?? FOLDER_ICON_DEFAULT)}
           color={item.color ?? DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER}
@@ -126,26 +144,30 @@ export const NavigationMenuItemInlineEditor = ({
       )}
     </StyledButton>
   );
-  const icon = isFolder ? (
+  const icon = isNamed ? (
     <IconPicker
       dropdownId={`${dropdownId}-icon`}
-      selectedIconKey={item.icon ?? FOLDER_ICON_DEFAULT}
+      selectedIconKey={item.icon ?? defaultIconKey}
       onOpen={select}
       onClose={clearFavoriteSelection}
       onChange={({ iconKey }) => void updateItem(item.id, { icon: iconKey })}
-      iconColorPicker={{
-        selectedColor: parseThemeColor(
-          item.color ?? DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER,
-        ),
-        onColorChange: (color) => void updateItem(item.id, { color }),
-      }}
+      iconColorPicker={
+        isFolder
+          ? {
+              selectedColor: parseThemeColor(
+                item.color ?? DEFAULT_NAVIGATION_MENU_ITEM_COLOR_FOLDER,
+              ),
+              onColorChange: (color) => void updateItem(item.id, { color }),
+            }
+          : undefined
+      }
       clickableComponent={iconButton}
     />
   ) : (
     iconButton
   );
   const label =
-    isFolder && isNameInputVisible ? (
+    isNamed && isNameInputVisible ? (
       <StyledNameInput
         instanceId={focusId}
         autoFocus
@@ -172,7 +194,7 @@ export const NavigationMenuItemInlineEditor = ({
         type="button"
         onClick={(event) => {
           event.stopPropagation();
-          if (!isFolder) {
+          if (!isNamed) {
             onEditLink();
           } else if (isSelected) {
             setInitialName(item.name ?? '');
@@ -183,7 +205,7 @@ export const NavigationMenuItemInlineEditor = ({
           }
         }}
       >
-        {isFolder ? item.name : getLinkNavigationMenuItemLabel(item)}
+        {isNamed ? item.name : getLinkNavigationMenuItemLabel(item)}
       </StyledLabelButton>
     );
   return (
@@ -193,7 +215,7 @@ export const NavigationMenuItemInlineEditor = ({
         label,
         isSelected:
           isSelected &&
-          (!isFolder || !isExpanded || isDefined(item.userWorkspaceId)),
+          (!isNamed || !isExpanded || isDefined(item.userWorkspaceId)),
       }}
     >
       {isNameInputVisible && (

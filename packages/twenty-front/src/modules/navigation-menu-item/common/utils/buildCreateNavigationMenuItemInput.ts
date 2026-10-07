@@ -8,6 +8,7 @@ import { ensureAbsoluteUrl, isDefined } from 'twenty-shared/utils';
 import { isNavigationMenuItemFolder } from '@/navigation-menu-item/common/utils/isNavigationMenuItemFolder';
 import { isNavigationMenuItemLink } from '@/navigation-menu-item/common/utils/isNavigationMenuItemLink';
 import { isNavigationMenuItemObject } from '@/navigation-menu-item/common/utils/isNavigationMenuItemObject';
+import { isNavigationMenuItemSection } from '@/navigation-menu-item/common/utils/isNavigationMenuItemSection';
 
 export const buildCreateNavigationMenuItemInput = (
   draftItem: NavigationMenuItem,
@@ -19,7 +20,10 @@ export const buildCreateNavigationMenuItemInput = (
     position: draftItem.position,
   };
 
-  if (isNavigationMenuItemFolder(draftItem)) {
+  if (
+    isNavigationMenuItemFolder(draftItem) ||
+    isNavigationMenuItemSection(draftItem)
+  ) {
     input.name = draftItem.name ?? undefined;
     input.icon = draftItem.icon ?? null;
   } else if (isNavigationMenuItemLink(draftItem)) {
