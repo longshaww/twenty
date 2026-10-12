@@ -23,6 +23,12 @@ export type FrontComponentExecutionContext = {
   /** Resolved color scheme of the host UI ('System' is already resolved) */
   colorScheme: 'light' | 'dark';
   locale?: AppLocale;
+  /** Path of the host page URL, e.g. '/page/<id>' (the id is the page layout's record id) */
+  pathname?: string;
+  /** Query string of the host page URL, with its leading '?' ('' when none) */
+  search?: string;
+  /** Origin of the host app (the worker's own origin is "null") */
+  origin?: string;
   /** Set when the component renders an AI chat tool call */
   toolCall?: FrontComponentToolCall;
 };

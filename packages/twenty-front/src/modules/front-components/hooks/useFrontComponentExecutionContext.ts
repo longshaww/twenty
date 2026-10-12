@@ -7,6 +7,7 @@ import { type FrontComponentToolCall } from 'twenty-sdk/front-component';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
 import { useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   buildFrontComponentStorageNamespace,
   clearFrontComponentStorage,
@@ -146,6 +147,7 @@ export const useFrontComponentExecutionContext = ({
 } => {
   const currentUser = useAtomStateValue(currentUserState);
   const navigateApp = useNavigateApp();
+  const location = useLocation();
   const store = useStore();
   const { requestApplicationAccessTokenRefresh } =
     useFrontComponentApplicationTokenPair();
@@ -465,6 +467,9 @@ export const useFrontComponentExecutionContext = ({
     colorScheme,
     // The host is always configured with APP_LOCALES, so this is a valid AppLocale.
     locale: i18n.locale as AppLocale,
+    pathname: location.pathname,
+    search: location.search,
+    origin: window.location.origin,
   };
 
   const unmountFrontComponent: FrontComponentHostCommunicationApi['unmountFrontComponent'] =
